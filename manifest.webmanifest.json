@@ -1,0 +1,15 @@
+{
+  "name": "撚撚生存日記",
+  "short_name": "生存日記",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#3e2c27",
+  "theme_color": "#3e2c27",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2371/2371914.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
