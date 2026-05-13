@@ -7,6 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icon_v2.png">
     <title>撚撚生存日記 📔</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -52,7 +53,23 @@
         .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
         .input-group { flex: 1; display: flex; flex-direction: column; }
         .input-group label { font-size: 12px; margin-bottom: 4px; color: #8b6f5c; }
-        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; }
+        
+        /* 修補後的輸入框樣式 */
+        input, select { 
+            width: 100%; 
+            height: 45px; 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 10px; 
+            font-size: 14px; 
+            background-color: white;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        input[type="date"] {
+            min-height: 45px;
+        }
+
         button.add-btn { width: 100%; padding: 12px; background: var(--accent-orange); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
 
         /* 紀錄列表樣式 */
@@ -83,7 +100,6 @@
 <body>
 
 <div class="app-container">
-    <!-- 頂部模塊 -->
     <div class="header-module">
         <div class="month-nav">
             <button onclick="changeMonth(-1)">◀</button>
@@ -106,7 +122,6 @@
         </div>
     </div>
 
-    <!-- 收入頁面 -->
     <div id="incomePanel" class="panel active-panel">
         <div class="title-row">
             <span class="page-title">🥗 維生指數</span>
@@ -131,7 +146,6 @@
         <div id="incomeList"></div>
     </div>
 
-    <!-- 支出頁面 -->
     <div id="expensePanel" class="panel">
         <div class="title-row">
             <span class="page-title">💸 總支出</span>
@@ -158,7 +172,6 @@
         <div id="expenseList"></div>
     </div>
 
-    <!-- 理財頁面 -->
     <div id="wealthPanel" class="panel">
         <div class="page-title" style="margin-bottom:15px">📈 Alipay 存款寶</div>
         <div class="section-card" style="background: linear-gradient(135deg, #3e2c27, #5d4037); color: white;">
@@ -179,7 +192,6 @@
         <div id="wealthList"></div>
     </div>
 
-    <!-- 存款頁面 -->
     <div id="savingPanel" class="panel">
         <div class="page-title" style="margin-bottom:15px">🏦 撚撚小金庫</div>
         <div class="badge">💡 理財小提醒：先存錢，再花錢！</div>
@@ -205,7 +217,6 @@
         <div id="savingList"></div>
     </div>
 
-    <!-- 統計頁面 -->
     <div id="statsPanel" class="panel">
         <div class="page-title">📊 收支洞察報告</div>
         <div id="reportCompare" style="font-size:13px; margin: 15px 0; color:#555"></div>
@@ -214,7 +225,6 @@
         </div>
     </div>
 
-    <!-- 導航 -->
     <div class="nav-bar">
         <div class="nav-item active" onclick="showPanel('income')"><span class="nav-icon">💰</span>收入</div>
         <div class="nav-item" onclick="showPanel('expense')"><span class="nav-icon">💸</span>支出</div>
@@ -249,7 +259,7 @@
         refreshUI();
     }
 
-    // --- 核心逻辑 ---
+    // --- 核心邏輯 ---
     function save() {
         localStorage.setItem('nn_diary_db', JSON.stringify(db));
         refreshUI();
