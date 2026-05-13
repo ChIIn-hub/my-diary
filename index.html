@@ -48,13 +48,13 @@
         .section-card { background: var(--card-white); border-radius: 20px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .title-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; }
         .page-title { font-size: 18px; font-weight: 800; color: var(--primary-brown); }
+        .list-header { font-size: 14px; font-weight: 700; color: #8b6f5c; margin: 10px 0; display: flex; align-items: center; gap: 5px; }
 
-        /* 輸入佈局：兩行並列 */
+        /* 輸入佈局 */
         .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
         .input-group { flex: 1; display: flex; flex-direction: column; }
         .input-group label { font-size: 12px; margin-bottom: 4px; color: #8b6f5c; }
         
-        /* 修補後的輸入框樣式 */
         input, select { 
             width: 100%; 
             height: 45px; 
@@ -66,35 +66,38 @@
             appearance: none;
             -webkit-appearance: none;
         }
-        input[type="date"] {
-            min-height: 45px;
-        }
+        input[type="date"] { min-height: 45px; }
 
-        button.add-btn { width: 100%; padding: 12px; background: var(--accent-orange); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        button.add-btn { width: 100%; padding: 12px; background: var(--accent-orange); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button.update-mode { background: var(--primary-brown); }
 
         /* 紀錄列表樣式 */
         .record-item { background: white; border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
         .rec-left { flex: 1; }
         .rec-row-1 { display: flex; align-items: baseline; gap: 8px; }
         .rec-row-2 { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
-        .rec-id { color: #aaa; font-size: 12px; }
-        .rec-date { font-size: 13px; color: #666; }
-        .rec-cat { font-size: 17px; font-weight: 700; }
+        .rec-id { color: #aaa; font-size: 12px; font-weight: bold; }
+        .rec-date { font-size: 12px; color: #888; }
+        .rec-cat { font-size: 16px; font-weight: 700; color: #333; }
         .rec-note { font-size: 11px; color: #999; }
-        .rec-amount { font-size: 18px; font-weight: 800; text-align: right; }
+        .rec-amount { font-size: 18px; font-weight: 800; text-align: right; min-width: 90px; }
         .amt-in { color: var(--income-green); }
         .amt-out { color: var(--accent-orange); }
-
-        /* 存款與理財 */
-        .progress-container { background: #eee; height: 10px; border-radius: 5px; margin: 10px 0; overflow: hidden; }
-        .progress-bar { background: var(--income-green); height: 100%; width: 0%; transition: 0.5s; }
-        .badge { background: #fdf2e9; padding: 8px; border-radius: 10px; font-size: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent-orange); }
+        
+        .action-links { font-size: 10px; color: #aaa; margin-top: 4px; display: flex; gap: 10px; justify-content: flex-end; }
+        .link-del { color: #cc6666; cursor: pointer; }
+        .link-edit { color: #6688cc; cursor: pointer; }
 
         /* 導航欄 */
         .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 5px 25px; border-top: 1px solid #ddd; max-width: 520px; margin: 0 auto; }
         .nav-item { text-align: center; font-size: 11px; color: #888; cursor: pointer; flex: 1; }
         .nav-item.active { color: var(--accent-orange); font-weight: bold; }
         .nav-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+
+        /* 存款與理財進度 */
+        .progress-container { background: #eee; height: 10px; border-radius: 5px; margin: 10px 0; overflow: hidden; }
+        .progress-bar { background: var(--income-green); height: 100%; width: 0%; transition: 0.5s; }
+        .badge { background: #fdf2e9; padding: 8px; border-radius: 10px; font-size: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent-orange); }
     </style>
 </head>
 <body>
@@ -122,53 +125,43 @@
         </div>
     </div>
 
+    <input type="hidden" id="editingId" value="">
+
     <div id="incomePanel" class="panel active-panel">
-        <div class="title-row">
-            <span class="page-title">🥗 維生指數</span>
-            <span style="font-weight: 800; color: var(--income-green);">總收入: <span id="pageIncTotal">$0</span></span>
-        </div>
+        <div class="title-row"><span class="page-title">🥗 維生指數</span><span style="font-weight: 800; color: var(--income-green);">總收入: <span id="pageIncTotal">$0</span></span></div>
         <div class="section-card">
             <div class="form-row">
                 <div class="input-group"><label>📅 日期</label><input type="date" id="incDate"></div>
-                <div class="input-group">
-                    <label>🏷️ 類別</label>
-                    <select id="incCat">
-                        <option>💰薪水</option><option>💵獎金</option><option>🏷️其他</option>
-                    </select>
-                </div>
+                <div class="input-group"><label>🏷️ 類別</label><select id="incCat"><option>💰薪水</option><option>💵獎金</option><option>🏷️其他</option></select></div>
             </div>
             <div class="form-row">
                 <div class="input-group"><label>💰 金額</label><input type="number" id="incAmt" placeholder="0"></div>
                 <div class="input-group"><label>📝 備註</label><input type="text" id="incNote" placeholder="點擊備註"></div>
             </div>
-            <button class="add-btn" onclick="addRecord('income')">📌 新增收入記錄</button>
+            <button id="incBtn" class="add-btn" onclick="handleRecord('income')">📌 新增收入記錄</button>
         </div>
+        <div class="list-header">📋 紀錄明細</div>
         <div id="incomeList"></div>
     </div>
 
     <div id="expensePanel" class="panel">
-        <div class="title-row">
-            <span class="page-title">💸 總支出</span>
-            <span style="font-weight: 800; color: var(--expense-red);" id="pageExpTotal">$0</span>
-        </div>
+        <div class="title-row"><span class="page-title">💸 總支出</span><span style="font-weight: 800; color: var(--expense-red);" id="pageExpTotal">$0</span></div>
         <div class="section-card">
             <div class="form-row">
                 <div class="input-group"><label>📅 日期</label><input type="date" id="expDate"></div>
-                <div class="input-group">
-                    <label>🏷️ 類別</label>
-                    <select id="expCat">
-                        <option>🍽️餐飲</option><option>🏠家用</option><option>👩🏻‍🎓學貸</option><option>🚗車貸</option>
-                        <option>🛜網費</option><option>☎️電話費</option><option>💡電費</option><option>💦水費</option>
-                        <option>👵🏻退休基金</option><option>🏷️其他</option>
-                    </select>
-                </div>
+                <div class="input-group"><label>🏷️ 類別</label><select id="expCat">
+                    <option>🍽️餐飲</option><option>🏠家用</option><option>👩🏻‍🎓學貸</option><option>🚗車貸</option>
+                    <option>🛜網費</option><option>☎️電話費</option><option>💡電費</option><option>💦水費</option>
+                    <option>👵🏻退休基金</option><option>🏷️其他</option>
+                </select></div>
             </div>
             <div class="form-row">
                 <div class="input-group"><label>💰 金額</label><input type="number" id="expAmt" placeholder="0"></div>
                 <div class="input-group"><label>📝 備註</label><input type="text" id="expNote" placeholder="支出細節"></div>
             </div>
-            <button class="add-btn" onclick="addRecord('expense')">📌 新增支出記錄</button>
+            <button id="expBtn" class="add-btn" onclick="handleRecord('expense')">📌 新增支出記錄</button>
         </div>
+        <div class="list-header">📋 紀錄明細</div>
         <div id="expenseList"></div>
     </div>
 
@@ -184,45 +177,47 @@
         </div>
         <div class="section-card">
             <div class="form-row">
-                <div class="input-group"><label>存入金額</label><input type="number" id="wealthAmt"></div>
-                <div class="input-group"><label>存入日期</label><input type="date" id="wealthDate"></div>
+                <div class="input-group"><label>📅 存入日期</label><input type="date" id="wealthDate"></div>
+                <div class="input-group"><label>🏷️ 項目名稱</label><input type="text" id="wealthCat" placeholder="例: 定期存款"></div>
             </div>
-            <button class="add-btn" onclick="addWealth()">📥 存入存款寶</button>
+            <div class="form-row">
+                <div class="input-group"><label>💰 金額</label><input type="number" id="wealthAmt" placeholder="0"></div>
+                <div class="input-group"><label>📝 備註</label><input type="text" id="wealthNote" placeholder="選填備註"></div>
+            </div>
+            <button id="wealthBtn" class="add-btn" onclick="handleRecord('wealth')">📥 存入存款寶</button>
         </div>
+        <div class="list-header">📋 紀錄明細</div>
         <div id="wealthList"></div>
     </div>
 
     <div id="savingPanel" class="panel">
         <div class="page-title" style="margin-bottom:15px">🏦 撚撚小金庫</div>
-        <div class="badge">💡 理財小提醒：先存錢，再花錢！</div>
         <div class="badge">📢 生存箴言：<span id="quote">積少成多，穩健前行。</span></div>
-        
         <div class="section-card">
-            <div style="display:flex; justify-content:space-between; align-items:center">
-                <span style="font-size:12px">🎯 存款目標</span>
-                <input type="number" id="savingTargetInput" style="width:80px; padding:2px" onchange="updateTarget()">
-            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center"><span style="font-size:12px">🎯 存款目標</span><input type="number" id="savingTargetInput" style="width:80px; padding:2px" onchange="updateTarget()"></div>
             <div style="font-size:32px; font-weight:800; color:var(--primary-brown)" id="targetDisplay">$0</div>
             <div class="progress-container"><div class="progress-bar" id="savingProgress"></div></div>
             <div style="font-size:13px">💰 當前存款額: <span id="currentSaving">$0</span></div>
         </div>
-
         <div class="section-card">
             <div class="form-row">
-                <div class="input-group"><label>存入金額</label><input type="number" id="savingAmt"></div>
-                <div class="input-group"><label>日期</label><input type="date" id="savingDate"></div>
+                <div class="input-group"><label>📅 日期</label><input type="date" id="savingDate"></div>
+                <div class="input-group"><label>🏷️ 項目名稱</label><input type="text" id="savingCat" placeholder="例: 零錢存入"></div>
             </div>
-            <button class="add-btn" onclick="addSaving()">📥 存入小金庫</button>
+            <div class="form-row">
+                <div class="input-group"><label>💰 金額</label><input type="number" id="savingAmt" placeholder="0"></div>
+                <div class="input-group"><label>📝 備註</label><input type="text" id="savingNote" placeholder="選填備註"></div>
+            </div>
+            <button id="savingBtn" class="add-btn" onclick="handleRecord('saving')">📥 存入小金庫</button>
         </div>
+        <div class="list-header">📋 紀錄明細</div>
         <div id="savingList"></div>
     </div>
 
     <div id="statsPanel" class="panel">
         <div class="page-title">📊 收支洞察報告</div>
         <div id="reportCompare" style="font-size:13px; margin: 15px 0; color:#555"></div>
-        <div class="section-card">
-            <canvas id="expenseChart"></canvas>
-        </div>
+        <div class="section-card"><canvas id="expenseChart"></canvas></div>
     </div>
 
     <div class="nav-bar">
@@ -235,93 +230,117 @@
 </div>
 
 <script>
-    // --- 資料結構與初始化 ---
     let db = {
-        transactions: [], // {id, type, date, cat, amt, note}
+        transactions: [], // 收入與支出
         wealth: { records: [], accInterest: 0, lastUpdate: null },
         savings: { records: [], target: 50000 }
     };
 
-    let currentYM = new Date().toISOString().slice(0, 7); // YYYY-MM
+    let currentYM = new Date().toISOString().slice(0, 7);
     let chartObj = null;
 
     function init() {
         const saved = localStorage.getItem('nn_diary_db');
         if (saved) db = JSON.parse(saved);
         
-        // 初始化日期選擇器
         const today = new Date().toISOString().slice(0, 10);
-        ['incDate', 'expDate', 'wealthDate', 'savingDate'].forEach(id => {
-            document.getElementById(id).value = today;
-        });
+        ['incDate', 'expDate', 'wealthDate', 'savingDate'].forEach(id => document.getElementById(id).value = today);
 
         calculateWealthInterest();
         refreshUI();
     }
 
-    // --- 核心邏輯 ---
     function save() {
         localStorage.setItem('nn_diary_db', JSON.stringify(db));
         refreshUI();
     }
 
-    function addRecord(type) {
-        const amt = parseFloat(document.getElementById(type === 'income' ? 'incAmt' : 'expAmt').value);
+    // --- 核心邏輯 (整合新增與修改) ---
+    function handleRecord(type) {
+        const editId = document.getElementById('editingId').value;
+        const amt = parseFloat(document.getElementById(type+'Amt').value);
+        const date = document.getElementById(type+'Date').value;
+        const cat = document.getElementById(type+'Cat').value || (type==='wealth'?'存款寶':'小金庫');
+        const note = document.getElementById(type+'Note').value;
+
         if (!amt) return;
-        const record = {
-            id: Date.now(),
-            type: type,
-            date: document.getElementById(type === 'income' ? 'incDate' : 'expDate').value,
-            cat: document.getElementById(type === 'income' ? 'incCat' : 'expCat').value,
-            amt: amt,
-            note: document.getElementById(type === 'income' ? 'incNote' : 'expNote').value
-        };
-        db.transactions.push(record);
+
+        const recordData = { date, cat, amt, note };
+
+        if (editId) {
+            // 修改模式
+            if (type === 'income' || type === 'expense') {
+                const idx = db.transactions.findIndex(r => r.id == editId);
+                db.transactions[idx] = { ...db.transactions[idx], ...recordData };
+            } else if (type === 'wealth') {
+                const idx = db.wealth.records.findIndex(r => r.id == editId);
+                db.wealth.records[idx] = { ...db.wealth.records[idx], ...recordData };
+            } else if (type === 'saving') {
+                const idx = db.savings.records.findIndex(r => r.id == editId);
+                db.savings.records[idx] = { ...db.savings.records[idx], ...recordData };
+            }
+            cancelEdit(type);
+        } else {
+            // 新增模式
+            const newRecord = { id: Date.now(), ...recordData, type: (type==='income'||type==='expense'?type:null) };
+            if (type === 'income' || type === 'expense') db.transactions.push(newRecord);
+            else if (type === 'wealth') db.wealth.records.push(newRecord);
+            else if (type === 'saving') db.savings.records.push(newRecord);
+        }
+        
         save();
-        // 清空輸入
-        document.getElementById(type === 'income' ? 'incAmt' : 'expAmt').value = '';
-        document.getElementById(type === 'income' ? 'incNote' : 'expNote').value = '';
+        document.getElementById(type+'Amt').value = '';
+        document.getElementById(type+'Note').value = '';
+        if(type==='wealth' || type==='saving') document.getElementById(type+'Cat').value = '';
     }
 
-    function deleteRecord(id) {
-        db.transactions = db.transactions.filter(r => r.id !== id);
+    function editRecord(id, panel) {
+        let record;
+        if (panel === 'income' || panel === 'expense') record = db.transactions.find(r => r.id == id);
+        else if (panel === 'wealth') record = db.wealth.records.find(r => r.id == id);
+        else if (panel === 'saving') record = db.savings.records.find(r => r.id == id);
+
+        if (!record) return;
+
+        document.getElementById('editingId').value = id;
+        document.getElementById(panel+'Date').value = record.date;
+        document.getElementById(panel+'Cat').value = record.cat;
+        document.getElementById(panel+'Amt').value = record.amt;
+        document.getElementById(panel+'Note').value = record.note || '';
+
+        const btn = document.getElementById(panel+'Btn');
+        btn.innerText = '💾 儲存修改';
+        btn.classList.add('update-mode');
+        
+        // 滾動回頂部方便編輯
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelEdit(panel) {
+        document.getElementById('editingId').value = '';
+        const btn = document.getElementById(panel+'Btn');
+        btn.innerText = panel.startsWith('inc') ? '📌 新增收入記錄' : (panel.startsWith('exp') ? '📌 新增支出記錄' : '📥 存入項目');
+        btn.classList.remove('update-mode');
+    }
+
+    function deleteRecord(id, panel) {
+        if (!confirm('確定要刪除這筆紀錄嗎？')) return;
+        if (panel === 'income' || panel === 'expense') db.transactions = db.transactions.filter(r => r.id != id);
+        else if (panel === 'wealth') db.wealth.records = db.wealth.records.filter(r => r.id != id);
+        else if (panel === 'saving') db.savings.records = db.savings.records.filter(r => r.id != id);
         save();
     }
 
-    // 理財邏輯 (存款寶)
-    function addWealth() {
-        const amt = parseFloat(document.getElementById('wealthAmt').value);
-        const date = document.getElementById('wealthDate').value;
-        if (!amt) return;
-        db.wealth.records.push({ id: Date.now(), amt, date });
-        save();
-        document.getElementById('wealthAmt').value = '';
-    }
-
+    // --- 理財與存款邏輯 ---
     function calculateWealthInterest() {
         const now = new Date();
         const last = db.wealth.lastUpdate ? new Date(db.wealth.lastUpdate) : new Date();
-        
-        // 簡單模擬：如果跨天了，根據總額計算利息
         const diffDays = Math.floor((now - last) / (1000 * 60 * 60 * 24));
         if (diffDays > 0) {
             const principal = db.wealth.records.reduce((s, r) => s + r.amt, 0);
-            const dailyRate = 0.02 / 365;
-            // 累加利息
-            const newInterest = principal * dailyRate * diffDays;
-            db.wealth.accInterest += newInterest;
+            db.wealth.accInterest += principal * (0.02 / 365) * diffDays;
         }
         db.wealth.lastUpdate = now.toISOString();
-    }
-
-    // 存款邏輯
-    function addSaving() {
-        const amt = parseFloat(document.getElementById('savingAmt').value);
-        const date = document.getElementById('savingDate').value;
-        if (!amt) return;
-        db.savings.records.push({ id: Date.now(), amt, date });
-        save();
-        document.getElementById('savingAmt').value = '';
     }
 
     function updateTarget() {
@@ -336,7 +355,6 @@
 
         const filterMonth = (list) => list.filter(r => r.date.startsWith(currentYM));
 
-        // 1. 頂部摘要
         const monthlyInc = filterMonth(db.transactions).filter(r => r.type === 'income').reduce((s, r) => s + r.amt, 0);
         const monthlyExp = filterMonth(db.transactions).filter(r => r.type === 'expense').reduce((s, r) => s + r.amt, 0);
         const monthlySave = filterMonth(db.savings.records).reduce((s, r) => s + r.amt, 0);
@@ -348,154 +366,91 @@
         document.getElementById('pageIncTotal').innerText = `$${monthlyInc.toLocaleString()}`;
         document.getElementById('pageExpTotal').innerText = `$${monthlyExp.toLocaleString()}`;
 
-        // 2. 列表渲染 (以收入為例)
-        renderList('incomeList', filterMonth(db.transactions).filter(r => r.type === 'income'));
-        renderList('expenseList', filterMonth(db.transactions).filter(r => r.type === 'expense'));
-        renderSimpleList('wealthList', db.wealth.records, 'wealth');
-        renderSimpleList('savingList', db.savings.records, 'savings');
+        // 渲染列表 (改為正序排序 a.id - b.id)
+        renderList('incomeList', filterMonth(db.transactions).filter(r => r.type === 'income'), 'income');
+        renderList('expenseList', filterMonth(db.transactions).filter(r => r.type === 'expense'), 'expense');
+        renderList('wealthList', db.wealth.records, 'wealth');
+        renderList('savingList', db.savings.records, 'saving');
 
-        // 3. 理財資料
         const wealthPrincipal = db.wealth.records.reduce((s, r) => s + r.amt, 0);
         document.getElementById('wealthTotal').innerText = `$${(wealthPrincipal + db.wealth.accInterest).toFixed(2)}`;
         document.getElementById('accInterest').innerText = `$${db.wealth.accInterest.toFixed(2)}`;
 
-        // 4. 存款資料
         const totalSaved = db.savings.records.reduce((s, r) => s + r.amt, 0);
         document.getElementById('currentSaving').innerText = `$${totalSaved.toLocaleString()}`;
         document.getElementById('targetDisplay').innerText = `$${db.savings.target.toLocaleString()}`;
         document.getElementById('savingTargetInput').value = db.savings.target;
-        const progress = Math.min(100, (totalSaved / (db.savings.target || 1)) * 100);
-        document.getElementById('savingProgress').style.width = progress + '%';
+        document.getElementById('savingProgress').style.width = Math.min(100, (totalSaved / (db.savings.target || 1)) * 100) + '%';
         
         updateChart(filterMonth(db.transactions).filter(r => r.type === 'expense'));
         updateStatsReport(monthlyInc, monthlyExp);
     }
 
-    function getWeekday(dateStr) {
-        const days = ['日', '一', '二', '三', '四', '五', '六'];
-        return '週' + days[new Date(dateStr).getDay()];
-    }
-
-    function renderList(containerId, data) {
+    function renderList(containerId, data, panel) {
         const container = document.getElementById(containerId);
-        container.innerHTML = data.sort((a,b) => b.date.localeCompare(a.date)).map((r, i) => `
+        // 按 ID 升序排列 (最舊的 #1 在最上面)
+        container.innerHTML = data.sort((a,b) => a.id - b.id).map((r, i) => `
             <div class="record-item">
                 <div class="rec-left">
                     <div class="rec-row-1">
-                        <span class="rec-id">#${data.length - i}</span>
-                        <span class="rec-date">${r.date} (${getWeekday(r.date)})</span>
+                        <span class="rec-id">#${i + 1}</span>
+                        <span class="rec-date">${r.date}</span>
                     </div>
                     <div class="rec-row-2">
                         <span class="rec-cat">${r.cat}</span>
                         <span class="rec-note">${r.note ? '📝 ' + r.note : ''}</span>
                     </div>
                 </div>
-                <div class="rec-amount ${r.type==='income'?'amt-in':'amt-out'}">
-                    ${r.type==='income'?'+':'-'}$${r.amt.toLocaleString()}
-                    <div style="font-size:10px; color:#ccc; cursor:pointer" onclick="deleteRecord(${r.id})">刪除</div>
+                <div class="rec-amount ${r.type==='income'||panel==='wealth'||panel==='saving'?'amt-in':'amt-out'}">
+                    ${r.type==='expense'?'-':'+'}$${r.amt.toLocaleString()}
+                    <div class="action-links">
+                        <span class="link-edit" onclick="editRecord(${r.id}, '${panel}')">修改</span>
+                        <span class="link-del" onclick="deleteRecord(${r.id}, '${panel}')">刪除</span>
+                    </div>
                 </div>
             </div>
         `).join('');
     }
 
-    function renderSimpleList(containerId, data, type) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = data.sort((a,b) => b.date.localeCompare(a.date)).map(r => `
-            <div class="record-item">
-                <div class="rec-date">${r.date} 存入</div>
-                <div class="rec-amount amt-in">+$${r.amt.toLocaleString()} 
-                <span style="font-size:10px; color:#ccc" onclick="deleteSimple('${type}', ${r.id})">刪除</span></div>
-            </div>
-        `).join('');
-    }
-
-    function deleteSimple(type, id) {
-        if (type === 'wealth') db.wealth.records = db.wealth.records.filter(r => r.id !== id);
-        else db.savings.records = db.savings.records.filter(r => r.id !== id);
-        save();
-    }
-
-    // --- 統計圖表 ---
     function updateChart(expenses) {
         const ctx = document.getElementById('expenseChart').getContext('2d');
         const cats = {};
         expenses.forEach(r => cats[r.cat] = (cats[r.cat] || 0) + r.amt);
-        
         const labels = Object.keys(cats);
         const values = Object.values(cats);
 
         if (chartObj) chartObj.destroy();
         chartObj = new Chart(ctx, {
             type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: values,
-                    backgroundColor: ['#bc6c25', '#dda15e', '#606c38', '#283618', '#f4a261', '#e76f51', '#264653']
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: { position: 'bottom' },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) => {
-                                let sum = values.reduce((a, b) => a + b, 0);
-                                let perc = ((ctx.raw / sum) * 100).toFixed(1) + '%';
-                                return ` ${ctx.label}: $${ctx.raw} (${perc})`;
-                            }
-                        }
-                    }
-                }
-            }
+            data: { labels, datasets: [{ data: values, backgroundColor: ['#bc6c25', '#dda15e', '#606c38', '#283618', '#f4a261', '#e76f51', '#264653'] }] },
+            options: { plugins: { legend: { position: 'bottom' } } }
         });
     }
 
     function updateStatsReport(thisInc, thisExp) {
-        const lastDate = new Date(currentYM + '-01');
-        lastDate.setMonth(lastDate.getMonth() - 1);
+        const lastDate = new Date(currentYM + '-01'); lastDate.setMonth(lastDate.getMonth() - 1);
         const lastYM = lastDate.toISOString().slice(0, 7);
-        
         const lastInc = db.transactions.filter(r => r.date.startsWith(lastYM) && r.type === 'income').reduce((s,r)=>s+r.amt,0);
         const lastExp = db.transactions.filter(r => r.date.startsWith(lastYM) && r.type === 'expense').reduce((s,r)=>s+r.amt,0);
-
-        const incDiff = thisInc - lastInc;
-        const expDiff = thisExp - lastExp;
-
-        document.getElementById('reportCompare').innerHTML = `
-            對比上月 (${lastYM})：<br>
-            收入：${incDiff >= 0 ? '↗️ 增加' : '↘️ 減少'} $${Math.abs(incDiff).toLocaleString()}<br>
-            支出：${expDiff >= 0 ? '🔺 增加' : '🥗 減少'} $${Math.abs(expDiff).toLocaleString()}
-        `;
+        document.getElementById('reportCompare').innerHTML = `對比上月 (${lastYM})：<br>收入：${thisInc-lastInc>=0?'↗️ 增加':'↘️ 減少'} $${Math.abs(thisInc-lastInc).toLocaleString()}<br>支出：${thisExp-lastExp>=0?'🔺 增加':'🥗 減少'} $${Math.abs(thisExp-lastExp).toLocaleString()}`;
     }
 
-    // --- 導航切換 ---
     function showPanel(id) {
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel'));
         document.getElementById(id + 'Panel').classList.add('active-panel');
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         event.currentTarget.classList.add('active');
-        if (id === 'stats') refreshUI(); 
+        cancelEdit(id);
     }
 
     function changeMonth(step) {
         let [y, m] = currentYM.split('-').map(Number);
-        m += step;
-        if (m > 12) { m = 1; y++; }
-        if (m < 1) { m = 12; y--; }
+        m += step; if (m > 12) { m = 1; y++; } else if (m < 1) { m = 12; y--; }
         currentYM = `${y}-${String(m).padStart(2, '0')}`;
         refreshUI();
     }
 
     init();
-
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('Service Worker registered:', reg.scope))
-                .catch(err => console.warn('Service Worker registration failed:', err));
-        });
-    }
 </script>
 
 </body>
